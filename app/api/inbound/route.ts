@@ -19,13 +19,11 @@ function parseInbound(body: Inbound) {
 }
 
 function normalizePhone(p: string) {
-    // Minimal E.164-like sanitizer for MVP
     const digits = p.replace(/[^\d+]/g, '');
     return digits.startsWith('+') ? digits : `+${digits}`;
 }
 
 function parseLocationFromText(text: string): string {
-    // Simple heuristics: lat,long OR ZIP OR "city, state"
     const latlon = text.match(/(-?\d{1,2}\.\d+)\s*,\s*(-?\d{1,3}\.\d+)/);
     if (latlon) return `${latlon[1]},${latlon[2]}`;
 
@@ -39,10 +37,8 @@ function parseLocationFromText(text: string): string {
 }
 
 function makePlan(location: string): string {
-    // Keep under ~300 chars for low bandwidth
     const coastalHints = /miami|key west|miami-dade|broward|palm beach|tampa|pensacola|jacksonville|fort lauderdale|naples|keys/i;
     const isCoastal = coastalHints.test(location);
-
     const now = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'America/New_York' });
     const base = [
         `Plan ${now} EST`,
@@ -90,7 +86,6 @@ async function handleCommand(from: string, text: string) {
         return makePlan(saved);
     }
 
-    // Not a command
     return '';
 }
 
@@ -99,19 +94,16 @@ export async function POST(req: NextRequest) {
         const body = (await req.json().catch(() => ({}))) as Inbound;
         const messages = parseInbound(body);
 
-        // Process each inbound message (usually one)
         for (const m of messages) {
             const from = m.from;
             const text = m.text || '';
 
-            // Command processing first
             const cmdReply = await handleCommand(from, text);
             if (cmdReply) {
                 await sendSMS(from, cmdReply);
                 continue;
             }
 
-            // If subscribed or location provided => send plan
             const sub = await isSubscriber(from);
             const inlineLoc = parseLocationFromText(text);
             if (sub || inlineLoc) {
@@ -127,8 +119,7 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json({ ok: true });
-    } catch (e) {
-        // Always 200 to avoid retries storms; log server-side in real app
+    } catch {
         return NextResponse.json({ ok: true });
     }
 }

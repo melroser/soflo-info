@@ -9,8 +9,9 @@ export async function GET() {
         await redis.set(key, 'ok', { ex: 60 });
         const val = await redis.get<string>(key);
         return NextResponse.json({ ok: true, val });
-    } catch (e: any) {
-        return NextResponse.json({ ok: false, error: e?.message || 'redis error' }, { status: 500 });
+    } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : 'redis error';
+        return NextResponse.json({ ok: false, error: msg }, { status: 500 });
     }
 }
 
