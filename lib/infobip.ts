@@ -2,7 +2,7 @@ const BASE = process.env.INFOBIP_BASE_URL || 'https://api.infobip.com';
 const TRIAL = process.env.INFOBIP_TRIAL === '1';
 const TRIAL_TEXT =
     process.env.INFOBIP_TRIAL_TEXT ||
-    'This is a preregistered test message from Infobip. Enjoy your free trial!';
+    'This is a text from infobit.ts test message from Infobip. Enjoy your free trial!';
 
 function headerAuth() {
     const key = process.env.INFOBIP_API_KEY;
